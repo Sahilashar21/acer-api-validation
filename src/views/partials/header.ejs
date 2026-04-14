@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title || 'Serial Validation System' %></title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-brand">
+            <div class="brand">Serial Validation</div>
+            <div class="subtitle">Operations console</div>
+          </div>
+          <nav class="top-nav">
+            <a href="/" class="active">Dashboard</a>
+            <a href="/records">Records</a>
+            <a href="/logs">Upload logs</a>
+            <a href="/health">Health</a>
+          </nav>
+        </div>
+        <div class="breadcrumb">
+          <span>Operations</span>
+          <span class="breadcrumb-sep">/</span>
+          <span><%= title || 'Dashboard' %></span>
+        </div>
+        <div class="topbar-actions">
+          <button class="button danger ghost" type="button" data-reset-all>Clear data</button>
+          <span class="status-pill status-checking" data-health-status>Checking...</span>
+          <div class="user-menu">
+            <div class="avatar">EG</div>
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-role">Operations</div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <script src="/app.js" defer></script>
+      <main class="container">

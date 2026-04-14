@@ -1,0 +1,186 @@
+<%- include('partials/header', { title }) %>
+<%
+  const safeStats = typeof stats !== 'undefined' ? stats : null;
+  const totals = safeStats && safeStats.totals ? safeStats.totals : { total: 0, validated: 0, pending: 0 };
+  const lastUpload = safeStats && safeStats.lastUpload ? safeStats.lastUpload : null;
+  const safeValidationTrend = typeof validationTrend !== 'undefined' ? validationTrend : [];
+  const safeUploadTrend = typeof uploadTrend !== 'undefined' ? uploadTrend : [];
+  const validationSeries = Array.isArray(safeValidationTrend) ? safeValidationTrend : [];
+  const uploadSeries = Array.isArray(safeUploadTrend) ? safeUploadTrend : [];
+  const validationMax = Math.max(1, ...validationSeries.map((row) => row.validated || 0));
+  const uploadMax = Math.max(1, ...uploadSeries.map((row) => row.total_rows || 0));
+  const chartPoints = validationSeries.map((row, index) => {
+    const x = 20 + index * 60;
+    const value = row.validated || 0;
+    const y = 150 - Math.round((value / validationMax) * 110);
+    return `${x},${y}`;
+  });
+  const chartLabels = validationSeries.map((row, index) => {
+    const x = 20 + index * 60;
+    const value = row.validated || 0;
+    const y = 150 - Math.round((value / validationMax) * 110);
+    return { x, y, value };
+  });
+%>
+
+<section class="dashboard">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Monitor serial validation health, uploads, and operational checks.</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="metric-card">
+      <div class="metric-label">Total Serials</div>
+      <div class="metric-value primary"><%= totals.total %></div>
+      <div class="metric-note">All records</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Validated</div>
+      <div class="metric-value success"><%= totals.validated %></div>
+      <div class="metric-note">Confirmed serials</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Pending</div>
+      <div class="metric-value warning"><%= totals.pending %></div>
+      <div class="metric-note">Awaiting validation</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Last Upload</div>
+      <div class="metric-value"><%= lastUpload ? lastUpload.total_rows : 0 %></div>
+      <div class="metric-note"><%= lastUpload ? new Date(lastUpload.uploaded_at).toLocaleString() : 'No uploads yet' %></div>
+    </div>
+  </div>
+
+  <div class="dashboard-layout">
+    <div class="dashboard-left">
+      <div class="charts-row">
+        <div class="panel chart-card">
+          <div class="chart-head">
+            <div>
+              <h3>Validation Trend</h3>
+              <p>Validated serials in the last 7 days.</p>
+            </div>
+            <span class="pill">Last 7 days</span>
+          </div>
+          <svg class="chart" viewBox="0 0 420 180" role="img" aria-label="Validation trend">
+            <defs>
+              <linearGradient id="lineGlow" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2563EB" stop-opacity="0.2" />
+                <stop offset="100%" stop-color="#2563EB" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path class="chart-gridline" d="M20 30 H400" />
+            <path class="chart-gridline" d="M20 80 H400" />
+            <path class="chart-gridline" d="M20 130 H400" />
+            <% if (chartPoints.length) { %>
+              <path class="chart-area" d="M<%= chartPoints.join(' L ') %> L 400 170 L20 170 Z" />
+              <polyline class="chart-line" points="<%= chartPoints.join(' ') %>" />
+              <% chartLabels.forEach((label) => { %>
+                <circle class="chart-point" cx="<%= label.x %>" cy="<%= label.y %>" r="3" />
+                <text class="chart-value" x="<%= label.x %>" y="<%= label.y - 8 %>" text-anchor="middle"><%= label.value %></text>
+              <% }) %>
+            <% } %>
+          </svg>
+          <div class="chart-legend">
+            <span><i class="dot"></i>Validated</span>
+          </div>
+        </div>
+        <div class="panel chart-card">
+          <div class="chart-head">
+            <div>
+              <h3>Upload Volume</h3>
+              <p>Rows imported in the last 6 days.</p>
+            </div>
+            <span class="pill">Last 30 days</span>
+          </div>
+          <div class="bar-chart">
+            <% uploadSeries.forEach((row) => { %>
+              <% const height = Math.round(((row.total_rows || 0) / uploadMax) * 100); %>
+              <div class="bar-item">
+                <span class="bar-label"><%= row.total_rows || 0 %></span>
+                <span class="bar" style="height: <%= height %>%"></span>
+              </div>
+            <% }) %>
+          </div>
+          <div class="chart-legend">
+            <span><i class="dot"></i>Uploads</span>
+            <span><i class="dot accent"></i>Rows imported</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-right" id="upload">
+      <div class="panel upload-card">
+        <div class="card-header">
+          <h2>Upload File</h2>
+          <p class="card-hint">Drop a spreadsheet to validate new serials.</p>
+        </div>
+        <div class="file-badges">
+          <span class="file-badge">.xlsx</span>
+          <span class="file-badge">.xls</span>
+          <span class="file-badge">.csv</span>
+        </div>
+        <form class="upload-form" action="/upload/preview" method="post" enctype="multipart/form-data">
+          <input id="file" name="file" class="file-input" type="file" accept=".xlsx,.xls,.csv" required />
+          <label class="dropzone" for="file">
+            <div class="dropzone-title">Drag and drop file here</div>
+            <div class="dropzone-subtitle">or click to browse</div>
+          </label>
+          <button class="button" type="submit">Preview First 10 Rows</button>
+        </form>
+        <div class="card-foot">Template: SR. NO., SERIAL (Frame Number), NAME</div>
+      </div>
+
+      <div class="panel side-panel">
+        <h3>Operational Checklist</h3>
+        <ul class="status-list">
+          <li class="ok">Access key configured</li>
+          <li class="ok">Supabase connection healthy</li>
+          <li class="ok">Serial format validated</li>
+          <li class="issue">Audit log enabled</li>
+        </ul>
+        <a class="button secondary" href="/logs">View upload logs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const uploadForm = document.querySelector('.upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', () => {
+      const button = uploadForm.querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = 'Processing...';
+    });
+  }
+</script>
+
+<% if (error) { %>
+  <section class="panel alert"><%= error %></section>
+<% } %>
+
+<% if (uploadResult) { %>
+  <section class="panel">
+    <h2>Upload summary</h2>
+    <div class="summary-grid">
+      <div class="summary-card"><span>Total rows</span><strong><%= uploadResult.totalRows %></strong></div>
+      <div class="summary-card"><span>Inserted</span><strong><%= uploadResult.inserted %></strong></div>
+      <div class="summary-card"><span>Skipped</span><strong><%= uploadResult.skipped %></strong></div>
+    </div>
+    <p>Data has been stored in PostgreSQL.</p>
+  </section>
+<% } %>
+
+<section class="panel">
+  <h2>Quick links</h2>
+  <div class="link-row">
+    <a href="/records">View records</a>
+    <a href="/logs">View upload logs</a>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,34 @@
+<%- include('partials/header', { title }) %>
+<section class="panel">
+  <div class="page-head">
+    <div>
+      <h1>Upload Logs</h1>
+      <p class="page-subtitle">Audit the most recent imports and row counts.</p>
+    </div>
+  </div>
+  <div class="table-wrap premium-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Total Rows</th>
+          <th>Inserted</th>
+          <th>Skipped</th>
+          <th>Uploaded At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% logs.forEach((log) => { %>
+          <tr>
+            <td><%= log.filename %></td>
+            <td><%= log.total_rows %></td>
+            <td><%= log.inserted %></td>
+            <td><%= log.skipped %></td>
+            <td><%= new Date(log.uploaded_at).toLocaleString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('partials/footer') %>

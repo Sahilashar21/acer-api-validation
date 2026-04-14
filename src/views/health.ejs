@@ -1,0 +1,31 @@
+<%- include('partials/header', { title }) %>
+<section class="panel">
+  <div class="page-head">
+    <div>
+      <h1>API Health</h1>
+      <p class="page-subtitle">Current API availability and database connectivity.</p>
+    </div>
+  </div>
+
+  <div class="health-grid">
+    <div class="health-card">
+      <div class="health-label">Status</div>
+      <div class="health-value <%= health && health.ok ? 'ok' : 'bad' %>">
+        <%= health && health.ok ? 'Healthy' : 'Degraded' %>
+      </div>
+      <div class="health-note">Last checked just now</div>
+    </div>
+    <div class="health-card">
+      <div class="health-label">Database latency</div>
+      <div class="health-value"><%= health ? health.latencyMs : 0 %> ms</div>
+      <div class="health-note">Postgres connectivity</div>
+    </div>
+  </div>
+
+  <% if (health && health.error) { %>
+    <div class="alert" style="margin-top: 16px;">
+      <strong>Details:</strong> <%= health.error %>
+    </div>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

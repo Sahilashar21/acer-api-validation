@@ -1,0 +1,66 @@
+<%- include('partials/header', { title }) %>
+<section class="panel">
+  <h1>Preview file</h1>
+  <p><strong>File:</strong> <%= originalFileName %></p>
+  <p><strong>Preview rows:</strong> <%= totalPreviewRows %></p>
+
+  <% if (previewRows.length) { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SR No.</th>
+            <th>Serial Number</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% previewRows.forEach((row) => { %>
+            <tr>
+              <td><%= row.srNo || '-' %></td>
+              <td><%= row.serialNumber %></td>
+              <td><%= row.name %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p>No valid rows found in the uploaded file.</p>
+    <% if (typeof debugInfo !== 'undefined' && debugInfo && debugInfo.length) { %>
+      <div class="panel">
+        <h2>Detected headers (debug)</h2>
+        <% debugInfo.forEach((sheet) => { %>
+          <div class="debug-block">
+            <h3><%= sheet.sheetName %></h3>
+            <p><strong>Header row:</strong> <%= sheet.headerRow.join(' | ') %></p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sample rows</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% sheet.sampleRows.forEach((row) => { %>
+                    <tr>
+                      <td><%= row.join(' | ') %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  <% } %>
+
+  <form action="/upload/import" method="post" class="inline-form">
+    <input type="hidden" name="tempFileName" value="<%= tempFileName %>" />
+    <input type="hidden" name="originalFileName" value="<%= originalFileName %>" />
+    <button class="button" type="submit">Confirm import</button>
+    <a class="button secondary" href="/">Cancel</a>
+  </form>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,73 @@
+<%- include('partials/header', { title }) %>
+<% const viewStatus = typeof status !== 'undefined' ? status : 'all'; %>
+<section class="panel">
+  <div class="records-header">
+    <div>
+      <h1>Records</h1>
+      <p class="page-subtitle">Review uploaded serials and validation status.</p>
+    </div>
+    <div class="records-actions">
+      <form class="search-form" action="/records" method="get">
+        <input type="text" name="search" placeholder="Search by SR No., serial number, or name" value="<%= search %>" />
+        <select name="status">
+          <option value="all" <%= viewStatus === 'all' ? 'selected' : '' %>>All statuses</option>
+          <option value="validated" <%= viewStatus === 'validated' ? 'selected' : '' %>>Validated</option>
+          <option value="pending" <%= viewStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+        </select>
+        <button class="button" type="submit">Search</button>
+      </form>
+      <div class="bulk-actions">
+        <button class="button secondary" type="button" data-bulk-delete disabled>Delete selected</button>
+        <button class="button danger" type="button" data-reset-all>Clear all data</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap premium-table">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" class="select-all" /></th>
+          <th>SR No.</th>
+          <th>Serial Number</th>
+          <th>Name</th>
+          <th>Validated</th>
+          <th>Validated At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% records.forEach((record) => { %>
+          <tr data-id="<%= record.id %>">
+            <td><input type="checkbox" class="row-select" /></td>
+            <td><%= record.sr_no || '-' %></td>
+            <td><%= record.serial_number %></td>
+            <td><%= record.name %></td>
+            <td>
+              <div class="status-cell">
+                <span class="badge <%= record.is_validated ? 'success' : 'pending' %>">
+                  <%= record.is_validated ? 'Validated' : 'Pending' %>
+                </span>
+                <select class="status-select">
+                  <option value="true" <%= record.is_validated ? 'selected' : '' %>>Validated</option>
+                  <option value="false" <%= !record.is_validated ? 'selected' : '' %>>Pending</option>
+                </select>
+              </div>
+            </td>
+            <td class="validated-at"><%= record.validated_at ? new Date(record.validated_at).toLocaleString() : '-' %></td>
+            <td>
+              <button class="button danger ghost" type="button" data-delete>Delete</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden>
+  <span id="toast-message"></span>
+  <button class="button ghost" type="button" id="toast-undo">Undo</button>
+</div>
+<script src="/records.js" defer></script>
+<%- include('partials/footer') %>
