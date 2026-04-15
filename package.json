@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node scripts/seed.js",
+    "uat-seed": "node scripts/uat-seed.js",
     "lint": "node -e \"console.log('No lint configured')\""
   },
   "dependencies": {

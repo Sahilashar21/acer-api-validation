@@ -24,7 +24,7 @@
             <td><%= log.total_rows %></td>
             <td><%= log.inserted %></td>
             <td><%= log.skipped %></td>
-            <td><%= new Date(log.uploaded_at).toLocaleString() %></td>
+            <td><%= new Date(log.uploaded_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) %></td>
           </tr>
         <% }) %>
       </tbody>

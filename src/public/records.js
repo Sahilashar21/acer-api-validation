@@ -58,7 +58,7 @@
         badge.classList.toggle('success', isValid);
         badge.classList.toggle('pending', !isValid);
         validatedAtCell.textContent = data.record.validated_at
-          ? new Date(data.record.validated_at).toLocaleString()
+          ? new Date(data.record.validated_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
           : '-';
       }
 

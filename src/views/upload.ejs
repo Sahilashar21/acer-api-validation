@@ -50,7 +50,7 @@
     <div class="metric-card">
       <div class="metric-label">Last Upload</div>
       <div class="metric-value"><%= lastUpload ? lastUpload.total_rows : 0 %></div>
-      <div class="metric-note"><%= lastUpload ? new Date(lastUpload.uploaded_at).toLocaleString() : 'No uploads yet' %></div>
+      <div class="metric-note"><%= lastUpload ? new Date(lastUpload.uploaded_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'No uploads yet' %></div>
     </div>
   </div>
 

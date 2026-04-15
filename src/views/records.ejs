@@ -54,7 +54,7 @@
                 </select>
               </div>
             </td>
-            <td class="validated-at"><%= record.validated_at ? new Date(record.validated_at).toLocaleString() : '-' %></td>
+            <td class="validated-at"><%= record.validated_at ? new Date(record.validated_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-' %></td>
             <td>
               <button class="button danger ghost" type="button" data-delete>Delete</button>
             </td>
