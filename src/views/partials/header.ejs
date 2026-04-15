@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= title || 'Serial Validation System' %></title>
+  <title><%= title || 'EBG Operations Console' %></title>
   <link rel="stylesheet" href="/styles.css" />
+  <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+  <% } %>
 </head>
 <body>
   <div class="app-shell">
@@ -12,32 +15,58 @@
       <header class="topbar">
         <div class="topbar-left">
           <div class="topbar-brand">
-            <div class="brand">Serial Validation</div>
-            <div class="subtitle">Operations console</div>
+            <a class="brand" href="/">EBG Operations Console</a>
+            <div class="subtitle">Enterprise validation hub</div>
           </div>
           <nav class="top-nav">
             <a href="/" class="active">Dashboard</a>
             <a href="/records">Records</a>
-            <a href="/logs">Upload logs</a>
-            <a href="/health">Health</a>
+            <% if (typeof user !== 'undefined' && user && user.roleCode !== 'viewer') { %>
+              <a href="/logs">Upload logs</a>
+              <a href="/health">Health</a>
+            <% } %>
+            <% if (typeof user !== 'undefined' && user && user.roleCode === 'system_admin') { %>
+              <a href="/users">User Management</a>
+              <a href="/audit-logs">Audit Logs</a>
+            <% } %>
           </nav>
         </div>
         <div class="breadcrumb">
-          <span>Operations</span>
+          <span>EBG</span>
           <span class="breadcrumb-sep">/</span>
           <span><%= title || 'Dashboard' %></span>
         </div>
         <div class="topbar-actions">
-          <button class="button danger ghost" type="button" data-reset-all>Clear data</button>
+          <% if (typeof user !== 'undefined' && user && (user.roleCode === 'system_admin' || user.roleCode === 'ops_admin')) { %>
+            <button class="button danger ghost" type="button" data-reset-all>Clear data</button>
+          <% } %>
           <span class="status-pill status-checking" data-health-status>Checking...</span>
-          <div class="user-menu">
+          <div class="user-menu" data-user-menu>
             <div class="avatar">EG</div>
             <div>
-              <div class="user-name">Admin</div>
-              <div class="user-role">Operations</div>
+              <div class="user-name"><%= typeof user !== 'undefined' && user ? user.username : 'User' %></div>
+              <div class="user-role"><%= typeof user !== 'undefined' && user ? user.roleName : '' %></div>
             </div>
+            <% if (typeof user !== 'undefined' && user) { %>
+              <div class="user-dropdown">
+                <button class="button ghost" type="button" data-change-password>Change Password</button>
+                <form class="logout-form" action="/logout" method="post">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button class="button danger ghost" type="submit">Logout</button>
+                </form>
+              </div>
+            <% } %>
           </div>
+          <% if (typeof user !== 'undefined' && user) { %>
+            <form class="logout-form" action="/logout" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+              <button class="button ghost" type="submit">Logout</button>
+            </form>
+          <% } %>
         </div>
       </header>
+      <div class="toast" id="global-toast" hidden>
+        <span id="global-toast-message"></span>
+      </div>
       <script src="/app.js" defer></script>
       <main class="container">

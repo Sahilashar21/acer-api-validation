@@ -54,6 +54,17 @@
     </div>
   </div>
 
+  <% if (typeof user !== 'undefined' && user && user.roleCode !== 'viewer') { %>
+    <div class="panel admin-ops-card" data-ops-card>
+      <div>
+        <div class="metric-label">Admin Operations</div>
+        <div class="ops-role">Role: <span class="badge"><%= user.roleName %></span></div>
+        <div class="metric-note">Security actions and role-specific tools.</div>
+      </div>
+      <button class="button ghost" type="button" data-ops-open>Open</button>
+    </div>
+  <% } %>
+
   <div class="dashboard-layout">
     <div class="dashboard-left">
       <div class="charts-row">
@@ -111,54 +122,119 @@
           </div>
         </div>
       </div>
+
+      <% if (typeof user !== 'undefined' && user && user.roleCode === 'viewer') { %>
+        <div class="panel">
+          <h2>Validation Records</h2>
+          <div class="table-wrap premium-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>SR No.</th>
+                  <th>Serial Number</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Validated At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% (recentRecords || []).forEach((record) => { %>
+                  <tr>
+                    <td><%= record.sr_no || '-' %></td>
+                    <td><%= record.serial_number %></td>
+                    <td><%= record.name %></td>
+                    <td>
+                      <span class="badge <%= record.is_validated ? 'success' : 'pending' %>">
+                        <%= record.is_validated ? 'Validated' : 'Pending' %>
+                      </span>
+                    </td>
+                    <td><%= record.validated_at ? new Date(record.validated_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
     </div>
 
     <div class="dashboard-right" id="upload">
-      <div class="panel upload-card">
-        <div class="card-header">
-          <h2>Upload File</h2>
-          <p class="card-hint">Drop a spreadsheet to validate new serials.</p>
+      <% if (typeof user !== 'undefined' && user && (user.roleCode === 'system_admin' || user.roleCode === 'ops_admin')) { %>
+        <div class="panel upload-card">
+          <div class="card-header">
+            <h2>Upload File</h2>
+            <p class="card-hint">Drop a spreadsheet to validate new serials.</p>
+          </div>
+          <div class="file-badges">
+            <span class="file-badge">.xlsx</span>
+            <span class="file-badge">.xls</span>
+            <span class="file-badge">.csv</span>
+          </div>
+          <form class="upload-form" action="/upload/preview" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <input id="file" name="file" class="file-input" type="file" accept=".xlsx,.xls,.csv" required />
+            <label class="dropzone" for="file">
+              <div class="dropzone-title">Drag and drop file here</div>
+              <div class="dropzone-subtitle">or click to browse</div>
+            </label>
+            <button class="button" type="submit">Preview First 10 Rows</button>
+          </form>
+          <div class="card-foot">Template: SR. NO., SERIAL (Frame Number), NAME</div>
         </div>
-        <div class="file-badges">
-          <span class="file-badge">.xlsx</span>
-          <span class="file-badge">.xls</span>
-          <span class="file-badge">.csv</span>
-        </div>
-        <form class="upload-form" action="/upload/preview" method="post" enctype="multipart/form-data">
-          <input id="file" name="file" class="file-input" type="file" accept=".xlsx,.xls,.csv" required />
-          <label class="dropzone" for="file">
-            <div class="dropzone-title">Drag and drop file here</div>
-            <div class="dropzone-subtitle">or click to browse</div>
-          </label>
-          <button class="button" type="submit">Preview First 10 Rows</button>
-        </form>
-        <div class="card-foot">Template: SR. NO., SERIAL (Frame Number), NAME</div>
-      </div>
+      <% } %>
 
-      <div class="panel side-panel">
-        <h3>Operational Checklist</h3>
-        <ul class="status-list">
-          <li class="ok">Access key configured</li>
-          <li class="ok">Supabase connection healthy</li>
-          <li class="ok">Serial format validated</li>
-          <li class="issue">Audit log enabled</li>
-        </ul>
-        <a class="button secondary" href="/logs">View upload logs</a>
-      </div>
+      <% if (typeof user !== 'undefined' && user && user.roleCode !== 'viewer') { %>
+        <div class="panel side-panel">
+          <h3>Operational Checklist</h3>
+          <ul class="status-list">
+            <li class="ok">Access key configured</li>
+            <li class="ok">Supabase connection healthy</li>
+            <li class="ok">Serial format validated</li>
+            <li class="ok">Audit log enabled</li>
+          </ul>
+          <a class="button secondary" href="/logs">View upload logs</a>
+        </div>
+      <% } %>
     </div>
   </div>
 </section>
 
-<script>
-  const uploadForm = document.querySelector('.upload-form');
-  if (uploadForm) {
-    uploadForm.addEventListener('submit', () => {
-      const button = uploadForm.querySelector('button[type="submit"]');
-      button.disabled = true;
-      button.textContent = 'Processing...';
-    });
-  }
-</script>
+<% if (typeof user !== 'undefined' && user && user.roleCode !== 'viewer') { %>
+<div class="modal" id="ops-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Admin Operations</h2>
+      <button class="button ghost" type="button" data-ops-close>Close</button>
+    </div>
+    <form class="modal-form" id="change-password-form">
+      <label>
+        Current Password
+        <input type="password" name="currentPassword" required />
+      </label>
+      <label>
+        New Password
+        <input type="password" name="newPassword" required />
+      </label>
+      <label>
+        Confirm New Password
+        <input type="password" name="confirmPassword" required />
+      </label>
+      <button class="button" type="submit">Change Password</button>
+    </form>
+    <div class="ops-actions">
+      <% if (typeof user !== 'undefined' && user && user.roleCode === 'system_admin') { %>
+        <a class="button ghost" href="/users">User Management</a>
+        <a class="button ghost" href="/audit-logs">Audit Logs</a>
+      <% } %>
+      <% if (typeof user !== 'undefined' && user && (user.roleCode === 'system_admin' || user.roleCode === 'ops_admin')) { %>
+        <a class="button ghost" href="#upload">Go to Upload</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script src="/dashboard.js" defer></script>
+<% } %>
 
 <% if (error) { %>
   <section class="panel alert"><%= error %></section>

@@ -3,21 +3,25 @@ const asyncHandler = require('../utils/asyncHandler');
 const importService = require('../services/importService');
 const cycleService = require('../services/cycleService');
 const healthService = require('../services/healthService');
+const auditService = require('../services/auditService');
 
 const showUploadPage = asyncHandler(async (req, res) => {
-  const [stats, validationTrend, uploadTrend] = await Promise.all([
+  const isViewer = res.locals.user && res.locals.user.roleCode === 'viewer';
+  const [stats, validationTrend, uploadTrend, recentRecords] = await Promise.all([
     cycleService.getDashboardStats(),
     cycleService.getValidationTrend(7),
-    cycleService.getUploadTrend(6)
+    cycleService.getUploadTrend(6),
+    cycleService.listCycles({ limit: isViewer ? 200 : 10 })
   ]);
 
   res.render('upload', {
-    title: 'Serial Upload',
+    title: 'Dashboard',
     uploadResult: null,
     error: null,
     stats,
     validationTrend,
-    uploadTrend
+    uploadTrend,
+    recentRecords
   });
 });
 
@@ -30,7 +34,7 @@ const previewUpload = asyncHandler(async (req, res) => {
     ]);
 
     return res.status(400).render('upload', {
-      title: 'Serial Upload',
+      title: 'Dashboard',
       uploadResult: null,
       error: 'Please upload a valid Excel or CSV file.',
       stats,
@@ -57,7 +61,7 @@ const importUpload = asyncHandler(async (req, res) => {
   const tempFileName = String(req.body.tempFileName || '');
   if (!tempFileName) {
     return res.status(400).render('upload', {
-      title: 'Serial Upload',
+      title: 'Dashboard',
       uploadResult: null,
       error: 'Preview file is missing. Please upload the file again.'
     });
@@ -66,6 +70,14 @@ const importUpload = asyncHandler(async (req, res) => {
   const filePath = importService.resolveTempFile(tempFileName);
   const summary = await importService.importUploadedFile(filePath, req.body.originalFileName || tempFileName);
 
+  await auditService.logEvent({
+    actorUserId: req.session.userId,
+    action: 'records_imported',
+    targetType: 'upload',
+    targetId: String(summary.totalRows),
+    details: { inserted: summary.inserted, skipped: summary.skipped }
+  });
+
   const [stats, validationTrend, uploadTrend] = await Promise.all([
     cycleService.getDashboardStats(),
     cycleService.getValidationTrend(7),
@@ -73,7 +85,7 @@ const importUpload = asyncHandler(async (req, res) => {
   ]);
 
   res.render('upload', {
-    title: 'Serial Upload',
+    title: 'Dashboard',
     uploadResult: summary,
     error: null,
     stats,
@@ -127,6 +139,14 @@ const updateRecordStatus = asyncHandler(async (req, res) => {
     return res.status(404).json({ ok: false, message: 'Record not found.' });
   }
 
+  await auditService.logEvent({
+    actorUserId: req.session.userId,
+    action: 'record_status_updated',
+    targetType: 'validation_record',
+    targetId: String(updated.id),
+    details: { is_validated: updated.is_validated }
+  });
+
   return res.json({
     ok: true,
     record: {
@@ -144,6 +164,14 @@ const deleteRecord = asyncHandler(async (req, res) => {
   }
 
   const deleted = await cycleService.deleteCyclesByIds([id]);
+  if (deleted) {
+    await auditService.logEvent({
+      actorUserId: req.session.userId,
+      action: 'record_deleted',
+      targetType: 'validation_record',
+      targetId: String(id)
+    });
+  }
   return res.json({ ok: true, deleted });
 });
 
@@ -151,11 +179,24 @@ const bulkDeleteRecords = asyncHandler(async (req, res) => {
   const ids = Array.isArray(req.body.ids) ? req.body.ids.map((value) => Number(value)).filter(Boolean) : [];
 
   const deleted = await cycleService.deleteCyclesByIds(ids);
+  if (deleted) {
+    await auditService.logEvent({
+      actorUserId: req.session.userId,
+      action: 'records_bulk_deleted',
+      targetType: 'validation_record',
+      targetId: ids.join(',')
+    });
+  }
   return res.json({ ok: true, deleted });
 });
 
 const resetAllData = asyncHandler(async (req, res) => {
   await cycleService.clearAllData();
+  await auditService.logEvent({
+    actorUserId: req.session.userId,
+    action: 'data_reset',
+    targetType: 'validation_record'
+  });
   return res.json({ ok: true });
 });
 

@@ -1,0 +1,115 @@
+<%- include('partials/header', { title }) %>
+<% const errorMessage = typeof error !== 'undefined' ? error : null; %>
+<input type="hidden" id="csrf-token" value="<%= csrfToken %>" />
+<section class="panel">
+  <% if (errorMessage) { %>
+    <div class="alert"><%= errorMessage %></div>
+  <% } %>
+  <div class="records-header">
+    <div>
+      <h1>User Management</h1>
+      <p class="page-subtitle">Manage access for System Admin, Ops Admin, and Viewer roles.</p>
+    </div>
+    <button class="button" type="button" data-open-user>Create User</button>
+  </div>
+
+  <div class="table-wrap premium-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Failed Attempts</th>
+          <th>Locked Until</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach((user) => { %>
+          <tr data-id="<%= user.id %>">
+            <td>
+              <input class="inline-input username-input" type="text" value="<%= user.username %>" <%= user.role_code === 'system_admin' ? 'disabled' : '' %> />
+            </td>
+            <td>
+              <select class="role-select" <%= user.role_code === 'system_admin' ? 'disabled' : '' %>>
+                <option value="system_admin" <%= user.role_code === 'system_admin' ? 'selected' : '' %>>System Admin</option>
+                <option value="ops_admin" <%= user.role_code === 'ops_admin' ? 'selected' : '' %>>Ops Admin</option>
+                <option value="viewer" <%= user.role_code === 'viewer' ? 'selected' : '' %>>Viewer</option>
+              </select>
+            </td>
+            <td>
+              <span class="badge <%= user.is_active ? 'success' : 'pending' %>">
+                <%= user.is_active ? 'Active' : 'Inactive' %>
+              </span>
+            </td>
+            <td><%= user.failed_attempts %></td>
+            <td><%= user.locked_until ? new Date(user.locked_until).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-' %></td>
+            <td><%= user.last_login_at ? new Date(user.last_login_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-' %></td>
+            <td>
+              <% if (user.role_code !== 'system_admin') { %>
+                <button class="button ghost" type="button" data-toggle-active>
+                  <%= user.is_active ? 'Deactivate' : 'Activate' %>
+                </button>
+                <button class="button ghost" type="button" data-reset-password>Reset Password</button>
+                <button class="button ghost" type="button" data-unlock>Unlock</button>
+                <button class="button danger ghost" type="button" data-delete-user>Delete</button>
+              <% } else { %>
+                <span class="muted">Protected</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal" id="user-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Create User</h2>
+      <button class="button ghost" type="button" data-close-user>Close</button>
+    </div>
+    <form class="modal-form" id="user-create-form" method="post" action="/users/create">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <label>
+        Username
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Temporary Password
+        <input type="password" name="password" required />
+      </label>
+      <div class="card-hint">Min 12 chars with uppercase, lowercase, number, and symbol.</div>
+      <label>
+        Role
+        <select name="roleCode">
+          <option value="ops_admin">Ops Admin</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </label>
+      <button class="button" type="submit">Create User</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="reset-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Reset Password</h2>
+      <button class="button ghost" type="button" data-close-reset>Close</button>
+    </div>
+    <form class="modal-form" id="reset-form">
+      <label>
+        New Password
+        <input type="password" name="newPassword" required />
+      </label>
+      <button class="button" type="submit">Reset Password</button>
+    </form>
+  </div>
+</div>
+
+<script src="/users.js" defer></script>
+<%- include('partials/footer') %>

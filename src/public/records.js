@@ -7,6 +7,7 @@
   const selectAll = document.querySelector('.select-all');
   const searchForm = document.querySelector('.search-form');
   const statusSelect = searchForm ? searchForm.querySelector('select[name="status"]') : null;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
   let pendingDelete = null;
 
   if (!table || !bulkDeleteButton || !selectAll || !toast || !toastMessage || !toastUndo) {
@@ -45,7 +46,10 @@
 
       const response = await fetch('/records/update-status', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken || ''
+        },
         body: JSON.stringify({ id, isValidated })
       });
 
@@ -79,7 +83,10 @@
     const timer = setTimeout(async () => {
       await fetch('/records/bulk-delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken || ''
+        },
         body: JSON.stringify({ ids })
       });
 
@@ -98,12 +105,20 @@
     }
 
     const row = event.target.closest('tr');
+    const confirmed = confirm('Delete this record?');
+    if (!confirmed) {
+      return;
+    }
     scheduleDelete([row]);
   });
 
   bulkDeleteButton.addEventListener('click', () => {
     const rows = Array.from(document.querySelectorAll('.row-select:checked')).map((checkbox) => checkbox.closest('tr'));
     if (rows.length) {
+      const confirmed = confirm(`Delete ${rows.length} selected record(s)?`);
+      if (!confirmed) {
+        return;
+      }
       scheduleDelete(rows);
     }
   });

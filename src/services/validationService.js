@@ -1,6 +1,6 @@
 const db = require('../config/db');
 const env = require('../config/env');
-const cycleService = require('./cycleService');
+const auditService = require('./auditService');
 
 async function validateSerialNumber({ serialNumber, accessKey }) {
   if (String(accessKey || '') !== env.accessKey) {
@@ -15,7 +15,7 @@ async function validateSerialNumber({ serialNumber, accessKey }) {
   try {
     await client.query('BEGIN');
 
-    const serialResult = await client.query('SELECT * FROM cycles WHERE serial_number = $1 FOR UPDATE', [serialNumber]);
+    const serialResult = await client.query('SELECT * FROM validation_records WHERE serial_number = $1 FOR UPDATE', [serialNumber]);
     const cycle = serialResult.rows[0];
 
     if (!cycle) {
@@ -29,7 +29,7 @@ async function validateSerialNumber({ serialNumber, accessKey }) {
     }
 
     await client.query(
-      `UPDATE cycles
+        `UPDATE validation_records
        SET is_validated = TRUE,
            validated_at = NOW(),
            updated_at = NOW()
@@ -38,6 +38,13 @@ async function validateSerialNumber({ serialNumber, accessKey }) {
     );
 
     await client.query('COMMIT');
+    await auditService.logEvent({
+      actorUserId: null,
+      action: 'api_validation',
+      targetType: 'validation_record',
+      targetId: serialNumber,
+      details: { status: 'validated' }
+    });
     return { responseMessage: 'Valid Serial Number', responseStatus: '0' };
   } catch (error) {
     await client.query('ROLLBACK');

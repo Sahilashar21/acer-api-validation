@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EBG Operations Console - Login</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <% if (csrfToken) { %>
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+  <% } %>
+</head>
+<body class="auth-body">
+  <div class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-brand">EBG Operations Console</div>
+      <p class="auth-subtitle">Secure access for authorized personnel only.</p>
+
+      <form class="auth-form" method="post" action="/login">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <label>
+          Username
+          <input type="text" name="username" autocomplete="username" required />
+        </label>
+        <label class="password-field">
+          Password
+          <div class="password-wrap">
+            <input type="password" name="password" autocomplete="current-password" required />
+            <button class="button ghost" type="button" data-toggle-password>Show</button>
+          </div>
+        </label>
+
+        <% if (error) { %>
+          <div class="auth-error"><%= error %></div>
+        <% } %>
+
+        <button class="button primary" type="submit">Sign in</button>
+      </form>
+
+      <div class="auth-forgot"><%= forgotText %></div>
+    </div>
+  </div>
+
+  <script>
+    const toggle = document.querySelector('[data-toggle-password]');
+    const passwordInput = document.querySelector('input[name="password"]');
+
+    if (toggle && passwordInput) {
+      toggle.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggle.textContent = isPassword ? 'Hide' : 'Show';
+      });
+    }
+  </script>
+</body>
+</html>

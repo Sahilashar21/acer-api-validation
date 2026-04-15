@@ -57,7 +57,7 @@ async function seedUatSerials() {
       .join(', ');
 
     await client.query(
-      `INSERT INTO cycles (sr_no, serial_number, name)
+      `INSERT INTO validation_records (sr_no, serial_number, name)
        VALUES ${placeholders}
        ON CONFLICT (serial_number) DO NOTHING`,
       values
@@ -71,7 +71,7 @@ async function seedUatSerials() {
 
     await client.query('COMMIT');
 
-    const countResult = await client.query('SELECT COUNT(*)::int AS count FROM cycles');
+    const countResult = await client.query('SELECT COUNT(*)::int AS count FROM validation_records');
     console.log(`UAT seed complete. total_cycles=${countResult.rows[0].count}`);
   } catch (error) {
     await client.query('ROLLBACK');

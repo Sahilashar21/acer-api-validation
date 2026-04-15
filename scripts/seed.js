@@ -35,7 +35,7 @@ async function seed() {
 
     await client.query(schemaSql);
 
-    await client.query('TRUNCATE TABLE cycles RESTART IDENTITY CASCADE');
+    await client.query('TRUNCATE TABLE validation_records RESTART IDENTITY CASCADE');
     await client.query('TRUNCATE TABLE upload_logs RESTART IDENTITY CASCADE');
 
     const cycles = [];
@@ -61,7 +61,7 @@ async function seed() {
       .join(', ');
 
     await client.query(
-      `INSERT INTO cycles (sr_no, serial_number, name, is_validated)
+      `INSERT INTO validation_records (sr_no, serial_number, name, is_validated)
        VALUES ${placeholders}
        ON CONFLICT (serial_number) DO NOTHING`,
       values
@@ -73,7 +73,7 @@ async function seed() {
       ['seed.csv', cycles.length, cycles.length, 0]
     );
 
-    const cycleCount = await client.query('SELECT COUNT(*)::int AS count FROM cycles');
+    const cycleCount = await client.query('SELECT COUNT(*)::int AS count FROM validation_records');
     const logCount = await client.query('SELECT COUNT(*)::int AS count FROM upload_logs');
 
     console.log(`Seed complete. cycles=${cycleCount.rows[0].count}, upload_logs=${logCount.rows[0].count}`);

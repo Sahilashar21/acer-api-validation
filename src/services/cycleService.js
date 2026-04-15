@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 async function getCycleBySerial(serialNumber) {
-  const result = await db.query('SELECT * FROM cycles WHERE serial_number = $1 LIMIT 1', [serialNumber]);
+  const result = await db.query('SELECT * FROM validation_records WHERE serial_number = $1 LIMIT 1', [serialNumber]);
   return result.rows[0] || null;
 }
 
@@ -27,7 +27,7 @@ async function listCycles({ search = '', status = 'all', limit = 200 } = {}) {
   const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
   const result = await db.query(
     `SELECT *
-     FROM cycles
+     FROM validation_records
      ${whereClause}
      ORDER BY updated_at DESC
      LIMIT $${limitIdx}`,
@@ -48,7 +48,7 @@ async function getDashboardStats() {
        COUNT(*)::int AS total,
        COUNT(*) FILTER (WHERE is_validated)::int AS validated,
        COUNT(*) FILTER (WHERE NOT is_validated)::int AS pending
-     FROM cycles`
+      FROM validation_records`
   );
 
   const uploadResult = await db.query(
@@ -73,7 +73,7 @@ async function getValidationTrend(days = 7) {
      SELECT series.day::date AS day,
             COALESCE(COUNT(c.*), 0)::int AS validated
      FROM series
-     LEFT JOIN cycles c
+        LEFT JOIN validation_records c
        ON date_trunc('day', c.validated_at) = series.day
      GROUP BY series.day
      ORDER BY series.day`,
@@ -129,7 +129,7 @@ async function bulkUpsertCycles(records) {
     });
 
     const sql = `
-      INSERT INTO cycles (sr_no, serial_number, name)
+      INSERT INTO validation_records (sr_no, serial_number, name)
       VALUES ${placeholders.join(', ')}
       ON CONFLICT (serial_number) DO UPDATE SET
         sr_no = EXCLUDED.sr_no,
@@ -143,7 +143,7 @@ async function bulkUpsertCycles(records) {
 
 async function markCycleValidated(serialNumber) {
   const result = await db.query(
-    `UPDATE cycles
+    `UPDATE validation_records
      SET is_validated = TRUE,
          validated_at = NOW(),
          updated_at = NOW()
@@ -157,7 +157,7 @@ async function markCycleValidated(serialNumber) {
 
 async function updateValidationStatus(id, isValidated) {
   const result = await db.query(
-    `UPDATE cycles
+    `UPDATE validation_records
      SET is_validated = $2,
          validated_at = CASE WHEN $2 THEN NOW() ELSE NULL END,
          updated_at = NOW()
@@ -174,7 +174,7 @@ async function deleteCyclesByIds(ids) {
     return 0;
   }
 
-  const result = await db.query('DELETE FROM cycles WHERE id = ANY($1::bigint[])', [ids]);
+  const result = await db.query('DELETE FROM validation_records WHERE id = ANY($1::bigint[])', [ids]);
   return result.rowCount || 0;
 }
 
@@ -184,7 +184,7 @@ async function clearAllData() {
   try {
     await client.query('BEGIN');
     await client.query('DELETE FROM upload_logs');
-    await client.query('DELETE FROM cycles');
+    await client.query('DELETE FROM validation_records');
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

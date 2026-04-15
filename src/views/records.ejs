@@ -1,5 +1,6 @@
 <%- include('partials/header', { title }) %>
 <% const viewStatus = typeof status !== 'undefined' ? status : 'all'; %>
+<% const canEdit = typeof user !== 'undefined' && user && (user.roleCode === 'system_admin' || user.roleCode === 'ops_admin'); %>
 <section class="panel">
   <div class="records-header">
     <div>
@@ -16,10 +17,12 @@
         </select>
         <button class="button" type="submit">Search</button>
       </form>
-      <div class="bulk-actions">
-        <button class="button secondary" type="button" data-bulk-delete disabled>Delete selected</button>
-        <button class="button danger" type="button" data-reset-all>Clear all data</button>
-      </div>
+      <% if (canEdit) { %>
+        <div class="bulk-actions">
+          <button class="button secondary" type="button" data-bulk-delete disabled>Delete selected</button>
+          <button class="button danger" type="button" data-reset-all>Clear all data</button>
+        </div>
+      <% } %>
     </div>
   </div>
 
@@ -27,19 +30,25 @@
     <table>
       <thead>
         <tr>
-          <th><input type="checkbox" class="select-all" /></th>
+          <% if (canEdit) { %>
+            <th><input type="checkbox" class="select-all" /></th>
+          <% } %>
           <th>SR No.</th>
           <th>Serial Number</th>
           <th>Name</th>
           <th>Validated</th>
           <th>Validated At</th>
-          <th>Actions</th>
+          <% if (canEdit) { %>
+            <th>Actions</th>
+          <% } %>
         </tr>
       </thead>
       <tbody>
         <% records.forEach((record) => { %>
           <tr data-id="<%= record.id %>">
-            <td><input type="checkbox" class="row-select" /></td>
+            <% if (canEdit) { %>
+              <td><input type="checkbox" class="row-select" /></td>
+            <% } %>
             <td><%= record.sr_no || '-' %></td>
             <td><%= record.serial_number %></td>
             <td><%= record.name %></td>
@@ -48,16 +57,20 @@
                 <span class="badge <%= record.is_validated ? 'success' : 'pending' %>">
                   <%= record.is_validated ? 'Validated' : 'Pending' %>
                 </span>
-                <select class="status-select">
-                  <option value="true" <%= record.is_validated ? 'selected' : '' %>>Validated</option>
-                  <option value="false" <%= !record.is_validated ? 'selected' : '' %>>Pending</option>
-                </select>
+                <% if (canEdit) { %>
+                  <select class="status-select">
+                    <option value="true" <%= record.is_validated ? 'selected' : '' %>>Validated</option>
+                    <option value="false" <%= !record.is_validated ? 'selected' : '' %>>Pending</option>
+                  </select>
+                <% } %>
               </div>
             </td>
             <td class="validated-at"><%= record.validated_at ? new Date(record.validated_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-' %></td>
-            <td>
-              <button class="button danger ghost" type="button" data-delete>Delete</button>
-            </td>
+            <% if (canEdit) { %>
+              <td>
+                <button class="button danger ghost" type="button" data-delete>Delete</button>
+              </td>
+            <% } %>
           </tr>
         <% }) %>
       </tbody>
@@ -69,5 +82,7 @@
   <span id="toast-message"></span>
   <button class="button ghost" type="button" id="toast-undo">Undo</button>
 </div>
-<script src="/records.js" defer></script>
+<% if (canEdit) { %>
+  <script src="/records.js" defer></script>
+<% } %>
 <%- include('partials/footer') %>
