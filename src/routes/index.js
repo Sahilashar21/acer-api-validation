@@ -4,7 +4,7 @@ const apiRoutes = require('./apiRoutes');
 
 const router = express.Router();
 
-router.use('/', adminRoutes);
 router.use('/', apiRoutes);
+router.use('/', adminRoutes);
 
 module.exports = router;
