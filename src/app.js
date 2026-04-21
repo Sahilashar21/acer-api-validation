@@ -16,13 +16,25 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
   const app = express();
+  const enableHsts = process.env.ENABLE_HSTS === 'true';
+  const cspUpgradeInsecureRequests = process.env.CSP_UPGRADE_INSECURE_REQUESTS === 'true';
+  const sessionCookieSecure = process.env.SESSION_COOKIE_SECURE === 'true';
 
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      hsts: enableHsts,
+      contentSecurityPolicy: {
+        directives: {
+          'upgrade-insecure-requests': cspUpgradeInsecureRequests ? [] : null
+        }
+      }
+    })
+  );
   app.use(morgan('combined'));
   app.use(rateLimit({ windowMs: 60 * 1000, limit: 300 }));
   app.use(express.json());
@@ -37,7 +49,7 @@ function createApp() {
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: env.nodeEnv === 'production',
+        secure: sessionCookieSecure,
         maxAge: env.sessionTimeoutMinutes * 60 * 1000
       }
     })
