@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const env = {
-  port: parseInt(process.env.PORT || '3000', 10),
+  port: 3000, // Forced to 3000, ignore process.env.PORT
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: process.env.DATABASE_URL || '',
   dbHost: process.env.DB_HOST || 'localhost',

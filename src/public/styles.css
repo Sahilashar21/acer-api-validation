@@ -1,3 +1,274 @@
+/* Hamburger menu styles */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 100;
+}
+.hamburger span {
+  display: block;
+  width: 26px;
+  height: 3px;
+  margin: 4px 0;
+  background: #e5e7eb;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 800px) {
+  .hamburger {
+    display: flex;
+  }
+  .top-nav {
+    display: none !important;
+    position: absolute;
+    left: 0;
+    top: 60px;
+    width: 100vw;
+    background: #111827;
+    flex-direction: column !important;
+    gap: 0 !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    z-index: 99;
+  }
+  .top-nav.open {
+    display: flex !important;
+  }
+  .top-nav a {
+    padding: 18px 20px !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid #222b3a;
+    font-size: 17px !important;
+    color: #e5e7eb;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+}
+/* --- Fine-tuned mobile responsiveness --- */
+@media (max-width: 480px) {
+  .topbar {
+    padding: 8px 4px !important;
+    gap: 6px !important;
+  }
+  .top-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    width: 100%;
+    background: #111827;
+    padding: 4px 0 4px 0 !important;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    scrollbar-width: thin;
+  }
+  .top-nav a {
+    min-width: 110px;
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 10px 8px !important;
+    font-size: 15px !important;
+    border-radius: 8px;
+    background: transparent;
+    white-space: nowrap;
+  }
+  .dashboard {
+    gap: 10px !important;
+  }
+  .panel, .dashboard .metric-card, .auth-card, .modal-card {
+    width: 100% !important;
+    margin: 0 0 12px 0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
+  }
+  .dashboard .metric-card {
+    margin-bottom: 10px !important;
+    padding: 14px !important;
+  }
+  .button, .modal-form .button, .auth-form .button {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+    font-size: 16px !important;
+    padding: 16px !important;
+  }
+  .records-header, .records-actions, .search-form, .bulk-actions {
+    margin-bottom: 8px !important;
+  }
+  .table-wrap, .premium-table {
+    margin-bottom: 12px !important;
+  }
+  .user-menu {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    margin-bottom: 8px !important;
+  }
+  .breadcrumb {
+    font-size: 11px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* Stack nav vertically if space is very tight */
+  @media (max-width: 350px) {
+    .top-nav {
+      flex-direction: column !important;
+      overflow-x: visible !important;
+    }
+    .top-nav a {
+      width: 100%;
+      min-width: 0;
+      text-align: left;
+    }
+  }
+}
+/* --- Mobile responsiveness improvements --- */
+@media (max-width: 480px) {
+  .app-shell, .app-content, .panel, .dashboard, .dashboard-layout, .charts-row, .records-header, .records-actions, .search-form, .stats-row, .health-grid, .table-wrap, .premium-table, .modal-card, .auth-card {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    box-sizing: border-box;
+  }
+  .panel, .auth-card, .modal-card {
+    padding: 10px !important;
+  }
+  .records-header, .records-actions, .search-form, .bulk-actions, .stats-row, .charts-row, .dashboard-layout, .health-grid {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+  .search-form input, .search-form select, .modal-form input, .modal-form select, .auth-form input {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 16px !important;
+    padding: 14px !important;
+  }
+  .button, .modal-form .button, .auth-form .button {
+    width: 100% !important;
+    font-size: 16px !important;
+    padding: 16px !important;
+  }
+  .table-wrap, .premium-table {
+    overflow-x: auto !important;
+    font-size: 13px !important;
+  }
+  table, th, td {
+    font-size: 13px !important;
+    padding: 8px !important;
+  }
+  .topbar, .topbar-left, .topbar-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+    padding: 10px !important;
+  }
+  .modal-card, .auth-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+  }
+  .auth-shell {
+    padding: 6px !important;
+  }
+}
+
+/* Ensure tables are scrollable on mobile */
+.table-wrap, .premium-table {
+  overflow-x: auto;
+}
+
+/* Hide less important columns on very small screens */
+@media (max-width: 480px) {
+  th:nth-child(n+4), td:nth-child(n+4) {
+    display: none;
+  }
+}
+
+/* --- Mobile nav override (single source of truth) --- */
+@media (max-width: 900px) {
+  .topbar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px !important;
+  }
+
+  .topbar-left {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .topbar-brand {
+    display: grid;
+    gap: 2px;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .hamburger {
+    display: flex !important;
+  }
+
+  .top-nav {
+    display: none !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    background: #111827 !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 4px 0 !important;
+    border-radius: 0 0 12px 12px !important;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25) !important;
+    z-index: 200 !important;
+  }
+
+  .top-nav.open {
+    display: flex !important;
+  }
+
+  .top-nav a {
+    padding: 14px 16px !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid #222b3a !important;
+    font-size: 16px !important;
+    width: 100% !important;
+    text-align: left !important;
+    white-space: normal !important;
+  }
+}
 * {
   box-sizing: border-box;
 }

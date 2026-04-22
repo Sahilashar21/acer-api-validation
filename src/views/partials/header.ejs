@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= title || 'EBG Operations Console' %></title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <script defer src="/hamburger.js"></script>
   <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
     <meta name="csrf-token" content="<%= csrfToken %>" />
   <% } %>
@@ -18,7 +20,10 @@
             <a class="brand" href="/">EBG Operations Console</a>
             <div class="subtitle">Enterprise validation hub</div>
           </div>
-          <nav class="top-nav">
+          <button class="hamburger" aria-label="Open navigation" aria-expanded="false" aria-controls="main-nav">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="top-nav" id="main-nav">
             <a href="/" class="active">Dashboard</a>
             <a href="/records">Records</a>
             <% if (typeof user !== 'undefined' && user && user.roleCode !== 'viewer') { %>
