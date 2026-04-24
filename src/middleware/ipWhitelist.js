@@ -13,11 +13,37 @@ function normalizeIp(ip) {
     return '';
   }
 
-  if (ip.startsWith('::ffff:')) {
-    return ip.replace('::ffff:', '');
+  const trimmed = String(ip).trim();
+  if (!trimmed) {
+    return '';
   }
 
-  return ip;
+  const withoutPort = trimmed.includes(':') && trimmed.includes('.')
+    ? trimmed.split(':')[0]
+    : trimmed;
+
+  if (withoutPort.startsWith('::ffff:')) {
+    return withoutPort.replace('::ffff:', '');
+  }
+
+  return withoutPort;
+}
+
+function getClientIp(req) {
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (cfIp) {
+    return normalizeIp(cfIp);
+  }
+
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (xForwardedFor) {
+    const forwarded = String(xForwardedFor)
+      .split(',')[0]
+      .trim();
+    return normalizeIp(forwarded);
+  }
+
+  return normalizeIp(req.ip);
 }
 
 function ipToInt(ip) {
@@ -52,7 +78,7 @@ function ipWhitelist(req, res, next) {
     return next();
   }
 
-  const ip = normalizeIp(req.ip);
+  const ip = getClientIp(req);
   const allowed = whitelist.some((entry) => {
     if (entry.includes('/')) {
       return isIpInCidr(ip, entry);
